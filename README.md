@@ -98,7 +98,8 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 Controls: type a letter on your keyboard, or tap one in *Letters Remaining* (handy on phones).
 Press **Enter**, or tap the blinking prompt, to continue. The **♪ music** button in the title bar
-toggles the background track (`Music.mp3`).
+toggles the background track, *Ride of the Golden Bloom* by Dian Shuai
+(`ride-of-the-golden-bloom.mp3`).
 
 The page shows the art in black on white. The art shrinks to fit the window, so the whole
 scene is visible on a phone too.
@@ -128,7 +129,7 @@ leviathan/
 ├── art.js                  # ASCII art for the web page, generated from leviathan.c++
 ├── scripts/
 │   └── extract-art.mjs     # regenerates art.js
-├── Music.mp3               # background music for the web version
+├── ride-of-the-golden-bloom.mp3  # background music for the web version
 └── output/                 # compiled console binary (ignored by git)
 ```
 
