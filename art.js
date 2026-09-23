@@ -1,4 +1,4 @@
-// Generated from thinktank.c++ by scripts/extract-art.mjs. Do not edit by hand.
+// Generated from leviathan.c++ by scripts/extract-art.mjs. Do not edit by hand.
 window.ART = {
  "intro": [
   " .___________. __    __  _______     __       _______ ____    ____  __      ___     .___________. __    __      ___     .__   __.",

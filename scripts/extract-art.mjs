@@ -1,9 +1,9 @@
-// Pulls the ASCII art out of thinktank.c++ and writes art.js for the web version,
+// Pulls the ASCII art out of leviathan.c++ and writes art.js for the web version,
 // so the browser shows exactly the same screens as the console game.
 // Run from the repo root after changing any art:  node scripts/extract-art.mjs
 import { readFileSync, writeFileSync } from "node:fs";
 
-const source = readFileSync("thinktank.c++", "utf8").split("\n");
+const source = readFileSync("leviathan.c++", "utf8").split("\n");
 const art = { intro: [], win: [], lose: [], stages: [[], [], [], [], [], []] };
 
 // Turn the C++ string literal body into the text it prints.
@@ -27,7 +27,7 @@ for (const [name, lines] of Object.entries({ intro: art.intro, win: art.win, los
 
 writeFileSync(
   "art.js",
-  "// Generated from thinktank.c++ by scripts/extract-art.mjs. Do not edit by hand.\n" +
+  "// Generated from leviathan.c++ by scripts/extract-art.mjs. Do not edit by hand.\n" +
     "window.ART = " + JSON.stringify(art, null, 1) + ";\n"
 );
 console.log(

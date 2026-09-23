@@ -1,10 +1,10 @@
-# ThinkTank: *The Leviathan*
+# The Leviathan
 
 A phrase-guessing game written in C++ for the terminal and drawn entirely in ASCII art.
 A planet-eating leviathan is drifting toward Earth. Guess the secret phrase one letter at a
 time before it arrives. Every wrong letter costs 10 hitpoints and brings the monster closer.
 
-**Play it in your browser:** <https://think-tank-chi.vercel.app/>
+**Play it in your browser:** <https://the-leviathan.vercel.app/>
 
 The web version runs the same game with the same ASCII screens, taken straight from the C++
 source. There's nothing to install.
@@ -64,17 +64,17 @@ understands ANSI color codes will do.
 
 ```bash
 # build
-g++ -std=c++11 -o output/thinktank thinktank.c++
+g++ -std=c++11 -o output/leviathan leviathan.c++
 
 # play
-./output/thinktank
+./output/leviathan
 ```
 
 On Windows (MinGW):
 
 ```bash
-g++ -std=c++11 -o thinktank.exe thinktank.c++
-thinktank.exe
+g++ -std=c++11 -o leviathan.exe leviathan.c++
+leviathan.exe
 ```
 
 Tips:
@@ -106,7 +106,7 @@ scene is visible on a phone too.
 ### Keeping the web art in sync with the C++ code
 
 The web page doesn't contain its own copy of the art. It loads `art.js`, which is **generated
-from `thinktank.c++`**. If you change any ASCII art or the title in the C++ file, regenerate
+from `leviathan.c++`**. If you change any ASCII art or the title in the C++ file, regenerate
 it with Node.js:
 
 ```bash
@@ -122,10 +122,10 @@ plain text (`\\` → `\`, `\"` → `"`), and writes the result to `art.js`.
 ## Project layout
 
 ```
-ThinkTank/
-├── thinktank.c++           # the game: all ASCII art and game logic
+leviathan/
+├── leviathan.c++           # the game: all ASCII art and game logic
 ├── index.html              # web version (terminal-style page)
-├── art.js                  # ASCII art for the web page, generated from thinktank.c++
+├── art.js                  # ASCII art for the web page, generated from leviathan.c++
 ├── scripts/
 │   └── extract-art.mjs     # regenerates art.js
 ├── Music.mp3               # background music for the web version
@@ -136,7 +136,7 @@ ThinkTank/
 
 ## How the code works
 
-`thinktank.c++` follows the numbered steps in its comments:
+`leviathan.c++` follows the numbered steps in its comments:
 
 1. **Intro:** `IntroScreen()` prints the banner and waits for Enter.
 2. **Pick a phrase:** `srand(time(NULL))`, then a random pick from the `Phrases` array.
