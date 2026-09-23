@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <stdlib.h>
+#include <limits>
 //#include <windows.h>
 //#include <mmsystem.h>
 using namespace std;
@@ -14,22 +15,30 @@ string Cyan = "\033[36;1m";
 string White = "\033[37;1m";
 string WhiteOnRed = "\033[41;1m";
 string Default = "\033[0m"; // default gray color & reset background to black
+// portable replacement for system("pause"), which only exists on Windows
+void Pause()
+{
+    cout << "Press Enter to continue . . .";
+    string Line;
+    getline(cin, Line);
+}
  void IntroScreen()
  {
 
 cout<<endl;
-cout<<" .___________. __    __   _______     __  ___ .______          ___       __  ___  _______ .__   __.\n";
-cout<<" |           ||  |  |  | |   ____|   |  |/  / |   _  \\        /   \\     |  |/  / |   ____||  \\ |  | \n";
-cout<<" `---|  |----`|  |__|  | |  |__      |  '  /  |  |_)  |      /  ^  \\    |  '  /  |  |__   |   \\|  | \n";
-cout<<"     |  |     |   __   | |   __|     |    <   |      /      /  /_\\  \\   |    <   |   __|  |  . `  | \n";
-cout<<"     |  |     |  |  |  | |  |____    |  .  \\  |  |\\  \\----./  _____  \\  |  .  \\  |  |____ |  |\\   | \n";
-cout<<"     |__|     |__|  |__| |_______|   |__|\\__\\ | _| `._____/__/     \\__\\ |__|\\__\\ |_______||__| \\__| \n";
+cout<<" .___________. __    __  _______     __       _______ ____    ____  __      ___     .___________. __    __      ___     .__   __.\n";
+cout<<" |           ||  |  |  ||   ____|   |  |     |   ____|\\   \\  /   / |  |    /   \\    |           ||  |  |  |    /   \\    |  \\ |  |\n";
+cout<<" `---|  |----`|  |__|  ||  |__      |  |     |  |__    \\   \\/   /  |  |   /  ^  \\   `---|  |----`|  |__|  |   /  ^  \\   |   \\|  |\n";
+cout<<"     |  |     |   __   ||   __|     |  |     |   __|    \\      /   |  |  /  /_\\  \\      |  |     |   __   |  /  /_\\  \\  |  . `  |\n";
+cout<<"     |  |     |  |  |  ||  |____    |  `----.|  |____    \\    /    |  | /  _____  \\     |  |     |  |  |  | /  _____  \\ |  |\\   |\n";
+cout<<"     |__|     |__|  |__||_______|   |_______||_______|    \\__/     |__|/__/     \\__\\    |__|     |__|  |__|/__/     \\__\\|__| \\__|\n";
 
 
 
 
 
-system("pause");
+cout<<"\nSave the world from the planet eating leviathan...\n\n";
+Pause();
  }
  void WinningScreen()
  {
@@ -73,7 +82,7 @@ cout<<"    --  __                      ___--  ^  ^                         --  _
 
 
 
-system("pause");
+Pause();
  }
 void LoosingScreen()
 {
@@ -112,7 +121,7 @@ cout<<"   --  __                      ___--  ^  ^                         --  __
 
 
 
-system("pause");
+Pause();
 }
 
 
@@ -126,7 +135,6 @@ int main()
     //mciSendString("play MY_SND3", NULL, 0, NULL);
     //step 1 - intro screen
     IntroScreen();
-    cout<<"\nSave the world from the planet eating kraken...\n";
     // step 2 - select random phrase
     string Phrases[5] = {"to thyself be true", "fit as a fiddle", "good guys always win", "just drink more coffee", "cat in a hat"};
     string SecretPhrase = Phrases[rand()%5];
@@ -336,7 +344,8 @@ cout<<"   /\\^   ^  ^    ^                  ^^ ^  '\\ ^          ^       ---    
      cout << "Phrase to guess: " << GuessPhrase << endl;
      // step 9 - input letter
     cout << "Enter a letter: ";
-    cin >> Letter;
+    if (!(cin >> Letter)) return 0; // input closed (Ctrl+D)
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // drop the rest of the line so Pause() waits
     Location = LettersRemaining.find(Letter,0);
     if (Location != -1)
     LettersRemaining.replace(Location,1," ");
@@ -353,7 +362,7 @@ cout<<"   /\\^   ^  ^    ^                  ^^ ^  '\\ ^          ^       ---    
 
     if(GuessPhrase==SecretPhrase || BadGuesses==60)
     {
-        system("pause");
+        Pause();
     }
   } // end game loop
 

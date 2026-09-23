@@ -1,0 +1,5 @@
+# compiled console game
+output/
+*.dSYM/
+thinktank
+.DS_Store

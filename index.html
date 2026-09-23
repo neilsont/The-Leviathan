@@ -1,163 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MystQ</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Leviathan</title>
+<meta name="description" content="ThinkTank: the console phrase-guessing game, running in the browser with its original ASCII art.">
+<style>
+  :root {
+    --page: #ffffff;
+    --ink: #111111;
+    --muted: #6b6b6b;
+    --chrome: #f0f0f0;
+    --border: #d6d6d6;
+    --cyan: #007c89;      /* console Cyan, darkened so it reads on white */
+    --hp-bg: #c62828;     /* console WhiteOnRed */
+    --hp-ink: #ffffff;
+    --focus: #1a73e8;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--page); color: var(--ink); }
+  body {
+    font-family: var(--mono);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  .window {
+    width: 100%;
+    max-width: 1400px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--page);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  }
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--chrome);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .dot:nth-child(1) { background: #ff5f57; }
+  .dot:nth-child(2) { background: #febc2e; }
+  .dot:nth-child(3) { background: #28c840; }
+  .titlebar .name { flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .titlebar button {
+    font: inherit;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .screen { padding: 16px; min-height: 60vh; }
+  /* The art is sized so its widest line always fits the window (see fitArt). */
+  #art {
+    margin: 0;
+    font-family: var(--mono);
+    line-height: 1.15;
+    white-space: pre;
+    overflow: hidden;
+  }
+  .console { margin-top: 12px; font-size: 15px; line-height: 1.7; }
+  .console p { margin: 0; overflow-wrap: anywhere; }
+  .hp { background: var(--hp-bg); color: var(--hp-ink); font-weight: 700; padding: 0 4px; }
+  .letters { display: inline-flex; flex-wrap: wrap; gap: 2px 0; vertical-align: top; }
+  .letters button {
+    font: inherit;
+    font-weight: 700;
+    color: var(--cyan);
+    background: none;
+    border: 0;
+    padding: 0 0.3ch;
+    min-width: 2ch;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .letters button:hover { background: #e6f4f5; }
+  .letters button:disabled { color: transparent; cursor: default; background: none; }
+  .phrase { letter-spacing: 0.15em; font-weight: 700; }
+  .prompt {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .cursor {
+    display: inline-block;
+    width: 0.6em;
+    height: 1.1em;
+    vertical-align: text-bottom;
+    background: var(--ink);
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .done { color: var(--muted); }
+  footer { margin-top: 14px; font-size: 12px; color: var(--muted); text-align: center; }
+  footer a { color: inherit; }
+  @media (max-width: 600px) {
+    body { padding: 12px 8px; }
+    .screen { padding: 12px 10px; }
+    .console { font-size: 14px; }
+  }
+</style>
 </head>
 <body>
-    <div id="game">
-        <div id="introScreen">
-            <button onclick="startGame()" class="start-button">Start Game</button>
-        </div>
-        <div id="gameScreen" style="display:none;">
-            <p id="phraseToGuess"></p>
-            <p id="lettersRemaining"></p>
-            <p id="hitpoints"></p>
-            <input type="text" id="letterInput" maxlength="1" autocapitalize="none">
-            <button onclick="guessLetter()">Guess</button>
-        </div>
-        <div id="resultScreen" style="display:none;">
-            <p id="resultMessage"></p>
-            <button onclick="restartGame()">Restart Game</button>
-        </div>
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="name">thinktank — ./thinktank</span>
+      <button id="music" type="button" aria-pressed="false">♪ music off</button>
     </div>
+    <main class="screen">
+      <pre id="art" aria-hidden="true"></pre>
+      <div id="console" class="console" aria-live="polite"></div>
+    </main>
+  </div>
+  <footer>Type a letter or tap one. The same game as <code>thinktank.c++</code>, in your browser. · <a href="https://github.com/neilsont/ThinkTank">Source</a></footer>
 
-    <!-- Audio element for background music -->
-    <audio id="backgroundMusic" src="Music.mp3" loop></audio>
+  <audio id="bgm" src="Music.mp3" loop preload="none"></audio>
+  <script src="art.js"></script>
+  <script>
+    const PHRASES = ["to thyself be true", "fit as a fiddle", "good guys always win", "just drink more coffee", "cat in a hat"];
+    const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
+    const MAX_BAD = 6;
 
-    <!-- Music control UI -->
-    <div id="musicControl" style="position: fixed; bottom: 10px; right: 10px; background: transparent; border-radius: 5px; padding: 1px; display: flex; align-items: center; z-index: 1000;">
-        <button id="muteButton" aria-label="Mute/Unmute music" style="background: none; border: none; cursor: grab; font-size: 10px; line-height: 1; user-select: none; touch-action: none;">🔊</button>
-    </div>
+    const artEl = document.getElementById("art");
+    const consoleEl = document.getElementById("console");
+    const WIDEST = Math.max(...[ART.intro, ART.win, ART.lose, ...ART.stages].flat().map((l) => l.length));
 
-    <script>
-        let phrases = [];
-        let secretPhrase, guessPhrase, badGuesses, lettersRemaining;
+    // mode: "intro" | "play" | "solved" (paused on the finished phrase) | "over"
+    let mode, secret, guess, badGuesses, used;
 
-        const backgroundMusic = document.getElementById('backgroundMusic');
-        const muteButton = document.getElementById('muteButton');
+    function fitArt() {
+      // Measure one character, then scale the font so the art fills the width. The game screens
+      // share one size (WIDEST) so the scene doesn't jump; the intro banner is sized on its own.
+      const cols = mode === "intro" ? Math.max(...ART.intro.slice(0, -1).map((l) => l.length)) : WIDEST;
+      const probe = document.createElement("span");
+      probe.textContent = "M".repeat(100);
+      probe.style.cssText = "font:100px " + getComputedStyle(artEl).fontFamily + ";position:absolute;visibility:hidden;white-space:pre";
+      document.body.appendChild(probe);
+      const charWidthAt100 = probe.getBoundingClientRect().width / 100;
+      probe.remove();
+      const size = (artEl.clientWidth / (cols * charWidthAt100)) * 100;
+      artEl.style.fontSize = Math.min(mode === "intro" ? 20 : 16, size) + "px";
+    }
 
-        // Initialize mute state
-        let isMuted = false;
+    const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+    const promptLine = (text) =>
+      `<p><button class="prompt" type="button" data-continue>${text} <span class="cursor"></span></button></p>`;
 
-        muteButton.addEventListener('click', () => {
-            isMuted = !isMuted;
-            backgroundMusic.muted = isMuted;
-            muteButton.textContent = isMuted ? '🔇' : '🔊';
-        });
+    function render() {
+      if (mode === "intro") {
+        // The intro's last line is the tagline; show it at reading size instead of art size.
+        artEl.textContent = ART.intro.slice(0, -1).join("\n");
+        consoleEl.innerHTML = `<p>${esc(ART.intro.at(-1))}</p>` + promptLine("Press Enter to continue . . .");
+      } else if (mode === "play" || mode === "solved") {
+        artEl.textContent = ART.stages[Math.min(badGuesses, MAX_BAD - 1)].join("\n");
+        const letters = [...ALPHABET]
+          .map((c) => `<button type="button" data-letter="${c}" ${used.has(c) ? "disabled" : ""} aria-label="Guess ${c}">${c}</button>`)
+          .join("");
+        consoleEl.innerHTML =
+          `<p>Hitpoints: <span class="hp">${60 - badGuesses * 10}/60</span></p>` +
+          `<p>Letters Remaining: <span class="letters">${letters}</span></p>` +
+          `<p>Phrase to guess: <span class="phrase">${esc(guess)}</span></p>` +
+          (mode === "play"
+            ? `<p>Enter a letter: <span class="cursor"></span></p>`
+            : promptLine("Press Enter to continue . . ."));
+      } else {
+        const won = guess === secret;
+        artEl.textContent = (won ? ART.win : ART.lose).join("\n");
+        consoleEl.innerHTML =
+          `<p>${won ? "Congratulations... You saved the world." : "We're doomed. You were Humanity's last hope..."}</p>` +
+          (won ? "" : `<p class="done">The phrase was: <span class="phrase">${esc(secret)}</span></p>`) +
+          promptLine("[Process completed] Press Enter to play again");
+      }
+      fitArt();
+    }
 
-        // Drag and drop functionality for muteButton
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
+    function newGame() {
+      secret = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+      guess = secret.replace(/[^ ]/g, ".");
+      badGuesses = 0;
+      used = new Set();
+      mode = "intro";
+      render();
+    }
 
-        muteButton.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            dragOffsetX = e.clientX - muteButton.getBoundingClientRect().left;
-            dragOffsetY = e.clientY - muteButton.getBoundingClientRect().top;
-            muteButton.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
+    function guessLetter(letter) {
+      if (mode !== "play" || used.has(letter)) return;
+      used.add(letter);
+      if (secret.includes(letter)) {
+        guess = [...secret].map((c, i) => (c === letter ? c : guess[i])).join("");
+      } else {
+        badGuesses++;
+      }
+      if (guess === secret) mode = "solved";
+      else if (badGuesses >= MAX_BAD) mode = "over";
+      render();
+    }
 
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                let newLeft = e.clientX - dragOffsetX;
-                let newTop = e.clientY - dragOffsetY;
-                // Keep within viewport bounds
-                newLeft = Math.min(window.innerWidth - muteButton.offsetWidth, Math.max(0, newLeft));
-                newTop = Math.min(window.innerHeight - muteButton.offsetHeight, Math.max(0, newTop));
-                muteButton.style.position = 'fixed';
-                muteButton.style.left = newLeft + 'px';
-                muteButton.style.top = newTop + 'px';
-                muteButton.style.right = 'auto';
-                muteButton.style.bottom = 'auto';
-            }
-        });
+    function advance() {
+      if (mode === "intro") mode = "play";
+      else if (mode === "solved") mode = "over";
+      else if (mode === "over") return newGame();
+      render();
+    }
 
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                muteButton.style.cursor = 'grab';
-            }
-        });
+    document.addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const key = e.key.toLowerCase();
+      if (mode === "play" && /^[a-z]$/.test(key)) {
+        e.preventDefault();
+        guessLetter(key);
+      } else if (mode !== "play" && (e.key === "Enter" || e.key === " ")) {
+        if (e.target.closest("button") && !e.target.closest("[data-continue]")) return;
+        e.preventDefault();
+        advance();
+      }
+    });
 
-        async function fetchPhrases() {
-            try {
-                const response = await fetch('https://api.datamuse.com/words?ml=phrase&max=10');
-                const data = await response.json();
-                phrases = data.map(item => item.word);
-            } catch (error) {
-                console.error("Error fetching phrases:", error);
-                phrases = ["to thyself be true", "fit as a fiddle", "good guys always win", "just drink more coffee", "cat in a hat"];
-            }
-        }
+    consoleEl.addEventListener("click", (e) => {
+      const letter = e.target.closest("[data-letter]");
+      if (letter) return guessLetter(letter.dataset.letter);
+      if (e.target.closest("[data-continue]")) advance();
+    });
 
-        async function initializeGame() {
-            if (phrases.length === 0) {
-                await fetchPhrases();
-            }
-            secretPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-            guessPhrase = secretPhrase.replace(/[^ ]/g, '.');
-            badGuesses = 0;
-            lettersRemaining = "abcdefghijklmnopqrstuvwxyz";
-            updateGameScreen();
-        }
+    const bgm = document.getElementById("bgm");
+    const musicBtn = document.getElementById("music");
+    musicBtn.addEventListener("click", () => {
+      const on = bgm.paused;
+      if (on) bgm.play().catch(() => {});
+      else bgm.pause();
+      musicBtn.textContent = on ? "♪ music on" : "♪ music off";
+      musicBtn.setAttribute("aria-pressed", String(on));
+      musicBtn.blur();
+    });
 
-        async function startGame() {
-            document.getElementById('introScreen').style.display = 'none';
-            document.body.style.backgroundColor = '#f4f4f4';
-            document.getElementById('gameScreen').style.display = 'block';
-            document.getElementById('phraseToGuess').innerText = "Loading phrase...";
-            await initializeGame();
-            backgroundMusic.play().catch(e => {
-                console.warn("Music play was prevented:", e);
-            });
-        }
-
-        function updateGameScreen() {
-            document.getElementById('phraseToGuess').innerText = `Phrase to guess: ${guessPhrase}`;
-            document.getElementById('lettersRemaining').innerText = `Letters Remaining: ${lettersRemaining}`;
-            document.getElementById('hitpoints').innerText = `Hitpoints: ${60 - badGuesses * 10}/60`;
-        }
-
-        function guessLetter() {
-            let letter = document.getElementById('letterInput').value.toLowerCase();
-            document.getElementById('letterInput').value = '';
-            if (lettersRemaining.includes(letter)) {
-                lettersRemaining = lettersRemaining.replace(letter, ' ');
-                if (secretPhrase.includes(letter)) {
-                    let regex = new RegExp(letter, 'g');
-                    guessPhrase = guessPhrase.split('').map((char, index) => secretPhrase[index] === letter ? letter : char).join('');
-                } else {
-                    badGuesses++;
-                }
-                updateGameScreen();
-                checkGameOver();
-            }
-        }
-
-        function checkGameOver() {
-            if (guessPhrase === secretPhrase || badGuesses === 6) {
-                document.getElementById('gameScreen').style.display = 'none';
-                document.getElementById('resultScreen').style.display = 'block';
-                document.getElementById('resultMessage').innerText = guessPhrase === secretPhrase ? "Congratulations... You saved the world." : "We're doomed. You were Humanity's last hope...";
-                backgroundMusic.pause();
-                backgroundMusic.currentTime = 0;
-            }
-        }
-
-        function restartGame() {
-            document.getElementById('resultScreen').style.display = 'none';
-            document.getElementById('introScreen').style.display = 'block';
-            document.getElementById('phraseToGuess').innerText = '';
-            document.getElementById('lettersRemaining').innerText = '';
-            document.getElementById('hitpoints').innerText = '';
-            document.getElementById('letterInput').value = '';
-            startGame();
-        }
-    </script>
+    window.addEventListener("resize", fitArt);
+    newGame();
+  </script>
 </body>
 </html>
-
