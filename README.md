@@ -9,6 +9,11 @@ time before it arrives. Every wrong letter costs 10 hitpoints and brings the mon
 The web version runs the same game with the same ASCII screens, taken straight from the C++
 source. There's nothing to install.
 
+| | |
+|---|---|
+| ![Start of a game at full health](screenshots/leviathan-start.png) | ![The leviathan appears after one wrong guess](screenshots/leviathan-first-miss.png) |
+| ![Phrase solved with 40/60 hitpoints](screenshots/leviathan-phrase-solved.png) | ![The YOU WON! screen](screenshots/leviathan-you-won.png) |
+
 ---
 
 ## How to play
@@ -130,6 +135,7 @@ leviathan/
 ├── scripts/
 │   └── extract-art.mjs     # regenerates art.js
 ├── ride-of-the-golden-bloom.mp3  # background music for the web version
+├── screenshots/            # preview images used in this README
 └── output/                 # compiled console binary (ignored by git)
 ```
 
